@@ -38,7 +38,6 @@ class FlightInfoServiceImplTest {
     @Test
     void shouldReturnFlightsForGivenDate() throws ExecutionException, InterruptedException {
         LocalDate testDate = LocalDate.of(2025, 5, 21); // Wednesday
-        DayOfWeek dayOfWeek = testDate.getDayOfWeek();
         Flight flight1 = new Flight(
                 LocalTime.of(9, 0),
                 "Barbados",

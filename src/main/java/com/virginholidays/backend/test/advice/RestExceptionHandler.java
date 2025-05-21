@@ -21,7 +21,6 @@ public class RestExceptionHandler {
         return new ResponseEntity<>(errorDetails, ex.getStatusCode());
     }
 
-    // optional: catch other exceptions too if you like
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAll(Exception ex) {
         Map<String, Object> errorDetails = new HashMap<>();
