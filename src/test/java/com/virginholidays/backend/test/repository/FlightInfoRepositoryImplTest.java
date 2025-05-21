@@ -13,12 +13,18 @@ import static org.hamcrest.Matchers.equalTo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 /**
@@ -83,5 +89,50 @@ public class FlightInfoRepositoryImplTest {
         assertThat(maybeFlights.get().get(11).days().get(4), equalTo(DayOfWeek.THURSDAY));
         assertThat(maybeFlights.get().get(11).days().get(5), equalTo(DayOfWeek.FRIDAY));
         assertThat(maybeFlights.get().get(11).days().get(6), equalTo(DayOfWeek.SATURDAY));
+    }
+
+    @Test
+    public void testFindAll_MissingCsv() throws ExecutionException, InterruptedException {
+        ClassLoader classLoader = mock(ClassLoader.class);
+        when(resourceLoader.getClassLoader()).thenReturn(classLoader);
+        when(classLoader.getResource(anyString())).thenReturn(null);
+
+        assertThrows(Exception.class, () -> repository.findAll().toCompletableFuture().get());
+    }
+
+    @Test()
+    public void testFindAll_InvalidCsvContent() throws Exception {
+        ClassLoader classLoader = mock(ClassLoader.class);
+        URL resource = getClass().getResource("/flights-invalid.csv");
+
+        when(resourceLoader.getClassLoader()).thenReturn(classLoader);
+        when(classLoader.getResource(anyString())).thenReturn(resource);
+
+        assertThrows(Exception.class, () -> repository.findAll().toCompletableFuture().get());
+    }
+
+    @Test
+    public void testFindAll_InvalidCsvContent_ReturnsEmpty() {
+        ClassLoader classLoader = mock(ClassLoader.class);
+        URL resource = getClass().getResource("/flights-invalid.csv");
+
+        when(resourceLoader.getClassLoader()).thenReturn(classLoader);
+        when(classLoader.getResource(anyString())).thenReturn(resource);
+
+        assertThrows(Exception.class, () -> repository.findAll().toCompletableFuture().get());
+    }
+
+    @Test
+    public void testFindAll_EmptyCsv() throws Exception {
+        ClassLoader classLoader = mock(ClassLoader.class);
+        URL resource = getClass().getResource("/flights-empty.csv");
+
+        when(resourceLoader.getClassLoader()).thenReturn(classLoader);
+        when(classLoader.getResource(anyString())).thenReturn(resource);
+
+        Optional<List<Flight>> optionalFlights = repository.findAll().toCompletableFuture().get();
+
+        assertThat(optionalFlights.isPresent(), equalTo(true));
+        assertThat(optionalFlights.get().size(), equalTo(0));
     }
 }
