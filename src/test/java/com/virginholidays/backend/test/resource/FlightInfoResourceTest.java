@@ -4,7 +4,9 @@ import com.virginholidays.backend.test.api.Flight;
 import com.virginholidays.backend.test.service.FlightInfoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -76,11 +78,12 @@ class FlightInfoResourceTest {
 
     @Test
     void getResults_invalidDateFormat_returnsBadRequest() {
-        CompletionStage<ResponseEntity<?>> responseStage = flightInfoResource.getResults("21-05-2024");
-        ResponseEntity<?> response = responseStage.toCompletableFuture().join();
+        HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
+            flightInfoResource.getResults("21-05-2024").toCompletableFuture().join();
+        });
 
-        assertEquals(400, response.getStatusCodeValue());
-        assertTrue(Objects.requireNonNull(response.getBody()).toString().contains("Invalid date format"));
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getMessage().contains("Invalid date format"));
     }
 }
 
