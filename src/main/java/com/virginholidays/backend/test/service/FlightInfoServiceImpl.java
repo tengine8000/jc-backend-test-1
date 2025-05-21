@@ -2,10 +2,15 @@ package com.virginholidays.backend.test.service;
 
 import com.virginholidays.backend.test.api.Flight;
 import com.virginholidays.backend.test.repository.FlightInfoRepository;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,7 +35,14 @@ public class FlightInfoServiceImpl implements FlightInfoService {
     @Override
     public CompletionStage<Optional<List<Flight>>> findFlightByDate(LocalDate outboundDate) {
 
-        // FIXME - applicant to complete
-        return flightInfoRepository.findAll();
+        DayOfWeek dayOfWeek = outboundDate.getDayOfWeek();
+
+        return flightInfoRepository.findAll().thenApply(optionalFlights ->
+                optionalFlights.map(flights -> flights.stream()
+                        .filter(flight -> flight.operatesOn(dayOfWeek))
+                        .sorted(Comparator.comparing(Flight::departureTime))
+                        .collect(Collectors.toList())
+                )
+        );
     }
 }

@@ -29,4 +29,8 @@ public record Flight (
     @JsonProperty("days")
     List<DayOfWeek> days
 
-) { }
+) {
+    public boolean operatesOn(DayOfWeek dayOfWeek) {
+        return days.contains(dayOfWeek);
+    }
+}
